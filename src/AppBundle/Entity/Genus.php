@@ -40,7 +40,7 @@ class Genus
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isPublished;
+    private $isPublished = true; // If we don't set this field when creating a new Genus object, it will automatically be set to true.
 
     public function getName()
     {

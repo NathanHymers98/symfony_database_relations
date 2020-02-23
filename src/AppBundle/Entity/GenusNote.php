@@ -39,6 +39,20 @@ class GenusNote
      */
     private $createdAt;
 
+    // Creating a $genus column in the GenusNote database table and giving it the ManyToOne annotaion.
+    // The targetEntity is the Entity class that this Entity class has this relationship with.
+    // In this case, since many GenusNotes belong to one Genus, the target entity is the Genus class.
+    // This means that in the database a GenusNote entry will have a genus column which will have an id that relates to which genus it belongs to
+    // This id is a foreign key because it belongs to another database table
+
+    // The JoinColumn annotation makes it so that when a genusNote object is created in the database, it has to relate to a Genus object in the database
+    // This is done by adding nullable=false. If this was set to true (which it is by default) then a genusNote object could be created with relating to a Genus object
+    /**
+     * @ORM\ManyToOne(targetEntity="Genus")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $genus;
+
     /**
      * @return mixed
      */
@@ -111,7 +125,21 @@ class GenusNote
         $this->createdAt = $createdAt;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getGenus()
+    {
+        return $this->genus;
+    }
 
+    /**
+     * @param mixed $genus
+     */
+    public function setGenus(Genus $genus)
+    {
+        $this->genus = $genus;
+    }
 
 
 }
