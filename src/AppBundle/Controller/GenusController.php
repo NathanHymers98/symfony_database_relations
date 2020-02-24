@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 
 namespace AppBundle\Controller;
 
@@ -47,7 +47,7 @@ class GenusController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         $genuses = $em->getRepository('AppBundle:Genus')
-            ->findAllPublishedOrderedBySize();
+            ->findAllPublishedOrderedByRecentlyActive();
 
         return $this->render('genus/list.html.twig', [
             'genuses' => $genuses
@@ -85,23 +85,42 @@ class GenusController extends Controller
         $this->get('logger')
             ->info('Showing genus: '.$genusName);
 
-        return $this->render('genus/show.html.twig', array(
-            'genus' => $genus
+
+//        // Gets the all the notes that were created in the last 3 months by using ArrayCollection methods. Only do this if you know you only have a small amount of items in the array, do not use it if you have a lot of items because it will impact performance.
+//        $recentNotes = $genus->getNotes() // Since getNotes() returns an ArrayCollection object, it comes with specific methods on it
+//            ->filter(function(GenusNote $note){ // Filtering through the GenusNote $note object
+//                return $note->getCreatedAt() > new \DateTime('-3 months'); // The ArrayCollection will call the filter method for each $notes object it finds in the array.
+//                                                                                // if it returns true (The note was created less than 3 months ago) it stays, if it returns false (The note was created more than 3 months ago), it disappears
+//            });
+
+        $recentNotes = $em->getRepository('AppBundle:GenusNote')
+            ->findAllRecentNotesForGenus($genus);
+
+        return $this->render('genus/show.html.twig', array( // Adds variables to twig so that we can use them in a twig html file.
+            'genus' => $genus,
+            'recentNotesCount' => count($recentNotes)
         ));
     }
 
     /**
-     * @Route("/genus/{genusName}/notes", name="genus_show_notes")
+     * @Route("/genus/{name}/notes", name="genus_show_notes")
      * @Method("GET")
      */
-    public function getNotesAction($genusName)
+    public function getNotesAction(Genus $genus) // A $name argument is not being passed here because of param conversion. I am type-hinting this argument and since the wildcard in the route is a property of the Entity class Genus
+                                                // Symfony will automatically know that it will be an object of the entity class genus.
     {
-        $notes = [
-            ['id' => 1, 'username' => 'AquaPelham', 'avatarUri' => '/images/leanna.jpeg', 'note' => 'Octopus asked me a riddle, outsmarted me', 'date' => 'Dec. 10, 2015'],
-            ['id' => 2, 'username' => 'AquaWeaver', 'avatarUri' => '/images/ryan.jpeg', 'note' => 'I counted 8 legs... as they wrapped around me', 'date' => 'Dec. 1, 2015'],
-            ['id' => 3, 'username' => 'AquaPelham', 'avatarUri' => '/images/leanna.jpeg', 'note' => 'Inked!', 'date' => 'Aug. 20, 2015'],
-        ];
-        $data = [
+        $notes = []; // Creating a variable $notes which is can array
+        foreach ($genus->getNotes() as $note) { // Looping over the notes property (which we are getting by using the getter method) as $note which will return a list of genus notes that are related to whatever genus we go to.
+            $notes [] = [ // I am putting the returned genus notes into a $notes array, giving the array the same keys that I have in the database and assigning the data returned to each one by using the ArrayCollection functions such as getId()
+                'id' => $note->getId(),
+                'username' => $note->getUsername(),
+                'avatarUri' => '/images/'.$note->getUserAvatarFilename(),
+                'note' => $note->getNote(),
+                'date' => $note->getCreatedAt()->format('M d, Y')
+            ];
+        }
+
+        $data = [ // Creating a $data variable which is an array that holds the all the data that the $notes array has.
             'notes' => $notes
         ];
 

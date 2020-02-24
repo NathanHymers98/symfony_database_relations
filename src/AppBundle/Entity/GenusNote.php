@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="AppBundle\Repository\GenusNoteRepository")
  * @ORM\Table(name="genus_note")
  */
 class GenusNote
@@ -47,8 +47,10 @@ class GenusNote
 
     // The JoinColumn annotation makes it so that when a genusNote object is created in the database, it has to relate to a Genus object in the database
     // This is done by adding nullable=false. If this was set to true (which it is by default) then a genusNote object could be created with relating to a Genus object
+
+    // The inversedBy is pointing to the other property of the relationship.
     /**
-     * @ORM\ManyToOne(targetEntity="Genus")
+     * @ORM\ManyToOne(targetEntity="Genus", inversedBy="notes")
      * @ORM\JoinColumn(nullable=false)
      */
     private $genus;
